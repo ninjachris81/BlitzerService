@@ -4,8 +4,8 @@
  */
 package com.ninjachris81.blitzerservice;
 
-import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -46,11 +46,10 @@ public class HttpFetcher implements Runnable {
         try {
             final List<String> warningsList = new ArrayList<>();
 
-            boolean sendAlert = false;
             boolean hasChanged = false;
 
-            //final Document document = Jsoup.parse(new URL(url), timeoutSec * 1000);
-            final Document document = Jsoup.parse(new File("C:\\Dropbox2\\Dropbox\\temp\\Staus & Blitzer - antenne 1 - Hier für Euch.html"), "UTF-8");
+            final Document document = Jsoup.parse(new URL(url), timeoutSec * 1000);
+            //final Document document = Jsoup.parse(new File("C:\\Dropbox2\\Dropbox\\temp\\Staus & Blitzer - antenne 1 - Hier für Euch.html"), "UTF-8");
             //Elements elements = document.body().select("div[class='verkehrsmeldungen']");
             Elements elements = document.body().select("p[class='blitzer']");
 
@@ -81,8 +80,6 @@ public class HttpFetcher implements Runnable {
                         }
                     }
                     if (hasChanged) {
-                        sendAlert = true;
-
                         FirebaseService.putData("blitzerservice", getWarningsJson(warningsList));
                     } else {
                         // not changed, do nothing
@@ -103,9 +100,8 @@ public class HttpFetcher implements Runnable {
                 hasError = true;
             }
 
-            if (sendAlert | isFirst) {
-                Logger.getLogger(HttpFetcher.class.getName()).log(Level.INFO, "Sending alert {0}", warningsList);
-                //AlertService.sendWarnings(warningsList);
+            if (isFirst && warningsList.isEmpty()) {
+                FirebaseService.putData("blitzerservice", getWarningsJson(warningsList));
             }
 
             isFirst = false;
