@@ -1,1 +1,2 @@
-/dist
+/target
+/libs/firebase4j-master/target
