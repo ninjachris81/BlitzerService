@@ -1,5 +1,6 @@
 package net.thegreshams.firebase4j.service;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -47,6 +48,7 @@ public class Firebase {
 ///////////////////////////////////////////////////////////////////////////////
     private final String baseUrl;
     private String secureToken = null;
+    private GoogleCredential credentials;
     private List<NameValuePair> query;
 
     public Firebase(String baseUrl) throws FirebaseException {
@@ -71,6 +73,28 @@ public class Firebase {
         this.baseUrl = baseUrl.trim();
         query = new ArrayList<NameValuePair>();
         LOGGER.info("intialized with base-url: " + this.baseUrl);
+    }
+
+    public Firebase(String baseUrl, GoogleCredential creds) throws FirebaseException {
+        this(baseUrl, creds.getAccessToken());
+        this.credentials = creds;
+    }
+
+    public GoogleCredential getCredentials() {
+        return credentials;
+    }
+
+    public void setCredentials(GoogleCredential credentials) {
+        this.credentials = credentials;
+        this.secureToken = credentials.getAccessToken();
+    }
+    
+    public String getSecureToken() {
+        return secureToken;
+    }
+
+    public void setSecureToken(String secureToken) {
+        this.secureToken = secureToken;
     }
 
 ///////////////////////////////////////////////////////////////////////////////

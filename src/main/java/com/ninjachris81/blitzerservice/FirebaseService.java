@@ -31,12 +31,13 @@ public class FirebaseService {
     private static Firebase firebase;
     
     public static void init(String url, String credentialJsonFile) throws FirebaseException, JacksonUtilityException, UnsupportedEncodingException, FileNotFoundException, IOException {
-        String token = getAccessToken(credentialJsonFile);
+        GoogleCredential token = getAccessToken(credentialJsonFile);
         firebase = new Firebase(url, token);
     }
     
     public static boolean putData(String key, JSONObject obj) {
         try {
+            checkAccessToken();
             JSONObject rootObj = new JSONObject();
             rootObj.put(key, obj);
             
@@ -44,23 +45,35 @@ public class FirebaseService {
             return response.getSuccess();
         } catch (FirebaseException | UnsupportedEncodingException ex) {
             Logger.getLogger(FirebaseService.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(FirebaseService.class.getName()).log(Level.SEVERE, null, ex);
         }
         return false;
     }
     
     public static boolean putData(String key, JSONArray arr) {
         try {
+            checkAccessToken();
             Map<String, Object> dataMap = new LinkedHashMap<>();
             dataMap.put( key, arr );
             FirebaseResponse response = firebase.put( dataMap );
             return response.getSuccess();
         } catch (JacksonUtilityException | FirebaseException | UnsupportedEncodingException ex) {
             Logger.getLogger(FirebaseService.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(FirebaseService.class.getName()).log(Level.SEVERE, null, ex);
         }
         return false;
     }
+    
+    private static void checkAccessToken() throws IOException {
+        if (firebase.getCredentials().getExpiresInSeconds()<=10) {
+            Logger.getLogger(FirebaseService.class.getName()).log(Level.SEVERE, "Refreshing credentials {0}", firebase.getCredentials());
+            firebase.getCredentials().refreshToken();
+        }
+    }
 
-    private static String getAccessToken(String credentialJsonFile) throws IOException, FileNotFoundException {
+    private static GoogleCredential getAccessToken(String credentialJsonFile) throws IOException, FileNotFoundException {
         GoogleCredential googleCred = GoogleCredential.fromStream(new FileInputStream(credentialJsonFile));
         GoogleCredential scoped = googleCred.createScoped(
             Arrays.asList(
@@ -68,11 +81,9 @@ public class FirebaseService {
               "https://www.googleapis.com/auth/userinfo.email"
             )
         );
-        scoped.refreshToken();
-        String token = scoped.getAccessToken();
         
-        System.out.println(token);
-        return token;
+        scoped.refreshToken();
+        return scoped;
     }
 
     
