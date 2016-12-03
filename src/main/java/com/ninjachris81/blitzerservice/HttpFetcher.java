@@ -7,6 +7,7 @@ package com.ninjachris81.blitzerservice;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,9 @@ public class HttpFetcher implements Runnable {
     private static boolean hasError = false;
     private static boolean isFirst = true;
     
+    private static int activeTimeFrom;
+    private static int activeTimeUntil;
+    
     public static void init(final String thisUrl, final int thisTimeoutSec, final String keywords) {
         url = thisUrl;
         timeoutSec = thisTimeoutSec;
@@ -41,9 +45,25 @@ public class HttpFetcher implements Runnable {
         }
     }
 
+    public static void setActiveTime(int activeTimeFrom, int activeTimeUntil) {
+        HttpFetcher.activeTimeFrom = activeTimeFrom;
+        HttpFetcher.activeTimeUntil = activeTimeUntil;
+    }
+    
+    private boolean isWithinActiveTime() {
+        Calendar rightNow = Calendar.getInstance();
+        int hour = rightNow.get(Calendar.HOUR_OF_DAY);
+        return hour>activeTimeFrom && hour<activeTimeUntil;
+    }
+
     @Override
     public void run() {
         try {
+            if (!isWithinActiveTime()) {
+                Logger.getLogger(HttpFetcher.class.getName()).log(Level.INFO, "No active time");
+                return;
+            }
+            
             final List<String> warningsList = new ArrayList<>();
 
             boolean hasChanged = false;

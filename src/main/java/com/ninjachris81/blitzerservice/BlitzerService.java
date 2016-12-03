@@ -10,8 +10,6 @@ import java.util.Scanner;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import net.thegreshams.firebase4j.error.FirebaseException;
 import net.thegreshams.firebase4j.error.JacksonUtilityException;
 
@@ -31,6 +29,8 @@ public class BlitzerService {
         FirebaseService.init(props.getProperty("fbUrl"), props.getProperty("fbBaseUrl"));
         
         HttpFetcher.init(props.getProperty("url"), Integer.parseInt(props.getProperty("timeoutSec")), props.getProperty("keywords"));
+        HttpFetcher.setActiveTime(Integer.parseInt(props.getProperty("activeTimeFrom")), Integer.parseInt(props.getProperty("activeTimeUntil")));
+        
         Runnable task = new HttpFetcher();
 
         final ScheduledFuture<?> taskHandle = scheduler.scheduleAtFixedRate(task, 0, Integer.parseInt(props.getProperty("intervalSec")), java.util.concurrent.TimeUnit.SECONDS);
@@ -67,6 +67,8 @@ public class BlitzerService {
             props.setProperty("keywords", "wildpark;solitude;bergheim;engelberg;ulmer;esslinger;krokodilweg");
             props.setProperty("fbUrl", "https://notificationservice-9528d.firebaseio.com/");
             props.setProperty("fbBaseUrl", "");
+            props.setProperty("activeTimeFrom", "7");
+            props.setProperty("activeTimeUntil", "19");
             
             try (FileOutputStream fos = new FileOutputStream(file)) {
                 System.out.println("Creating new config file " + file.getAbsolutePath());
