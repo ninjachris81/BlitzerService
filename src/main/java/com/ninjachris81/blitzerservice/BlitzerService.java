@@ -10,8 +10,6 @@ import java.util.Scanner;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import net.thegreshams.firebase4j.error.FirebaseException;
-import net.thegreshams.firebase4j.error.JacksonUtilityException;
 
 /**
  *
@@ -22,7 +20,7 @@ public class BlitzerService {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws IOException, FirebaseException, UnsupportedEncodingException, JacksonUtilityException {
+    public static void main(String[] args) throws IOException, UnsupportedEncodingException {
         final Properties props = loadProperties();
         final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         

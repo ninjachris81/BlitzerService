@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -100,7 +99,7 @@ public class HttpFetcher implements Runnable {
                         }
                     }
                     if (hasChanged) {
-                        FirebaseService.putData("blitzerservice", getWarningsJson(warningsList));
+                        FirebaseService.putData("blitzerservice", getWarningsMap(warningsList));
                     } else {
                         // not changed, do nothing
                         Logger.getLogger(HttpFetcher.class.getName()).log(Level.INFO, "Status unchanged: {0}", warningsList);
@@ -121,7 +120,7 @@ public class HttpFetcher implements Runnable {
             }
 
             if (isFirst && warningsList.isEmpty()) {
-                FirebaseService.putData("blitzerservice", getWarningsJson(warningsList));
+                FirebaseService.putData("blitzerservice", getWarningsMap(warningsList));
             }
 
             isFirst = false;
@@ -152,13 +151,13 @@ public class HttpFetcher implements Runnable {
         }
     }
 
-    private JSONObject getWarningsJson(List<String> warningsList) {
-        JSONObject obj = new JSONObject();
+    private Map<String, String> getWarningsMap(List<String> warningsList) {
+        Map<String, String> map = new HashMap<>();
         
         for (String warning : warningsList) {
-            obj.put("ID_" + System.currentTimeMillis() + "_" + Math.abs(new Random().nextInt()), warning);
+            map.put("ID_" + System.currentTimeMillis() + "_" + Math.abs(new Random().nextInt()), warning);
         }
         
-        return obj;
+        return map;
     }
 }
