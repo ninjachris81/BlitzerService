@@ -100,6 +100,7 @@ public class HttpFetcher implements Runnable {
                     }
                     if (hasChanged) {
                         FirebaseService.putData("blitzerservice", getWarningsMap(warningsList));
+                        //FirebaseService.sendNotification();
                     } else {
                         // not changed, do nothing
                         Logger.getLogger(HttpFetcher.class.getName()).log(Level.INFO, "Status unchanged: {0}", warningsList);

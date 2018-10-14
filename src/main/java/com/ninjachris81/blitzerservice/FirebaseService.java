@@ -10,12 +10,17 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.messaging.FirebaseMessaging;
+import com.google.firebase.messaging.FirebaseMessagingException;
+import com.google.firebase.messaging.Message;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -38,11 +43,20 @@ public class FirebaseService {
     }
     
     public static void putData(String key, Map<String, String> obj) {
-        DatabaseReference ref = firebase.getReference();
+        DatabaseReference ref = firebase.getReference("blitzerservice");
         if (obj.isEmpty()) {
             ref.removeValueAsync();
         } else {
             ref.setValueAsync(obj);
+        }
+    }
+    
+    public static void sendNotification() {
+        try {
+            Message msg = Message.builder().putData("u", "" + System.currentTimeMillis()).setTopic("bs").build();
+            FirebaseMessaging.getInstance(app).send(msg);
+        } catch (FirebaseMessagingException ex) {
+            Logger.getLogger(FirebaseService.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     

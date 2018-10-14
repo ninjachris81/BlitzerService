@@ -10,6 +10,8 @@ import java.util.Scanner;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -37,7 +39,15 @@ public class BlitzerService {
         Scanner scanner = new Scanner(System.in);
         
         do {
-            if (scanner.nextLine().startsWith("q")) break;
+            if (scanner.hasNextLine()) {
+                if (scanner.nextLine().startsWith("q")) break;
+            } else {
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(BlitzerService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
         } while (true);
         
         System.out.println("Stopped");
