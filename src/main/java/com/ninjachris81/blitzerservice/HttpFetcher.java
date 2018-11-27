@@ -35,6 +35,9 @@ public class HttpFetcher implements Runnable {
     private static int activeTimeFrom;
     private static int activeTimeUntil;
     
+    private static String FB_BLITZER_LC_KEY = "blitzerservice_status";
+    private static String FB_BLITZER_DATA_KEY = "blitzerservice_data";
+    
     public static void init(final String thisUrl, final int thisTimeoutSec, final String keywords) {
         url = thisUrl;
         timeoutSec = thisTimeoutSec;
@@ -58,6 +61,8 @@ public class HttpFetcher implements Runnable {
     @Override
     public void run() {
         try {
+            setNoWarnings(true);
+
             if (!isWithinActiveTime()) {
                 Logger.getLogger(HttpFetcher.class.getName()).log(Level.INFO, "No active time");
                 return;
@@ -73,6 +78,7 @@ public class HttpFetcher implements Runnable {
             Elements elements = document.body().select("p[class='blitzer']");
 
             if (!document.body().children().isEmpty()) {
+                setLastCheckTS();
 
                 if (!elements.isEmpty()) {
 
@@ -92,6 +98,8 @@ public class HttpFetcher implements Runnable {
 
                                 if (matches) {
                                     warningsList.add(str);
+                                } else {
+                                    warningsList.remove(str);
                                 }
 
                                 Logger.getLogger(HttpFetcher.class.getName()).log(Level.INFO, "Status of " + s + " changed {0}", matches);
@@ -99,7 +107,7 @@ public class HttpFetcher implements Runnable {
                         }
                     }
                     if (hasChanged) {
-                        FirebaseService.putData("blitzerservice", getWarningsMap(warningsList));
+                        FirebaseService.putData(FB_BLITZER_DATA_KEY, getWarningsMap(warningsList));
                         //FirebaseService.sendNotification();
                     } else {
                         // not changed, do nothing
@@ -113,21 +121,16 @@ public class HttpFetcher implements Runnable {
             } else {
                 // not found
                 Logger.getLogger(HttpFetcher.class.getName()).log(Level.INFO, "Error while parsing");
-
-                if (!hasError) {
-                    AlertService.sendError("Body is empty !");
-                }
                 hasError = true;
             }
 
             if (isFirst && warningsList.isEmpty()) {
-                FirebaseService.putData("blitzerservice", getWarningsMap(warningsList));
+                FirebaseService.putData(FB_BLITZER_DATA_KEY, getWarningsMap(warningsList));
             }
 
             isFirst = false;
         } catch (IOException ex) {
             Logger.getLogger(HttpFetcher.class.getName()).log(Level.SEVERE, null, ex);
-            AlertService.sendError(ex.getMessage());
         }
     }
 
@@ -142,21 +145,32 @@ public class HttpFetcher implements Runnable {
     }
 
     private void setNoWarnings() {
-        if (hasWarnings()) {
+        setNoWarnings(false);
+    }
+
+    private void setNoWarnings(boolean override) {
+        if (override || hasWarnings()) {
             for (final String s : termStatus.keySet()) {
                 termStatus.put(s, Boolean.FALSE);
             }
 
             Logger.getLogger(HttpFetcher.class.getName()).log(Level.INFO, "No Warnings - resetting");
-            AlertService.sendWarnings(null);
+            FirebaseService.putData(FB_BLITZER_DATA_KEY, null);
         }
+    }
+    
+    private void setLastCheckTS() {
+        Map<String, String> map = new HashMap<>();
+        map.put("TS", Long.toString(System.currentTimeMillis()));
+        
+        FirebaseService.putData(FB_BLITZER_LC_KEY, map);
     }
 
     private Map<String, String> getWarningsMap(List<String> warningsList) {
         Map<String, String> map = new HashMap<>();
         
         for (String warning : warningsList) {
-            map.put("ID_" + System.currentTimeMillis() + "_" + Math.abs(new Random().nextInt()), warning);
+            map.put("ID_" + Math.abs(new Random().nextInt()) + "@" + System.currentTimeMillis(), warning);
         }
         
         return map;

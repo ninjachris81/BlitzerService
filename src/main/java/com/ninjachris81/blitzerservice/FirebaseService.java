@@ -43,8 +43,8 @@ public class FirebaseService {
     }
     
     public static void putData(String key, Map<String, String> obj) {
-        DatabaseReference ref = firebase.getReference("blitzerservice");
-        if (obj.isEmpty()) {
+        DatabaseReference ref = firebase.getReference(key);
+        if (obj==null || obj.isEmpty()) {
             ref.removeValueAsync();
         } else {
             ref.setValueAsync(obj);
